@@ -3,8 +3,13 @@
  */
 module.exports = {
   siteMetadata: {
-    title: `lindaportfolio`,
-    siteUrl: `https://www.yourdomain.tld`
+    title: `Linda Thithavong`,
+    siteUrl: `https://lindathithavong.com`
   },
-  plugins: ["gatsby-plugin-sass"]
+  plugins: [
+    `gatsby-plugin-sass`,
+    `gatsby-plugin-image`,
+    `gatsby-plugin-sharp`,
+    `gatsby-transformer-sharp`,
+  ]
 };

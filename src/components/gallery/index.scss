@@ -1,0 +1,20 @@
+#gallery {
+  display: flex;
+  flex-wrap: wrap;
+  width: auto;
+
+  .grid-item {
+    width: 20%;
+  }
+
+  @media screen and (max-width: 1200px) {
+    .grid-item {
+      width: calc(100%/3);
+    }
+  }
+  @media screen and (max-width: 768px) {
+    .grid-item {
+      width: 50%;
+    }
+  }
+}
