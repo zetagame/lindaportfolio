@@ -31,27 +31,30 @@ const images = [
   'leathercostume-3e1379a3',
 ];
 
+const SSRImageLoader = ({ src, onLoad, alt, ...rest }) => { 
+  useEffect(() => {
+    const img = new Image();
+    img.src = src;
+    img.onload = onLoad;
+  }, []);
+  return <img {...rest} alt={alt} src={src} />;
+}
+
 export default function ImageGallery() {
   const [masonry, setMasonry] = useState(null);
   const [loadCount, setLoadCount] = useState(0);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (!masonry) {
       Masonry = require('masonry-layout');
-      setMasonry(new Masonry('#gallery', {
+      const _masonry = new Masonry('#gallery', {
         itemSelector: '.grid-item',
         gridSizer: '.grid-sizer',
         percentPosition: true,
-      }));
+      });
+      setMasonry(_masonry)
     }
   }, []);
-
-  useEffect(() => {
-    if (masonry) {
-      masonry.reloadItems();
-      masonry.layout();
-    }
-  }, [loadCount, masonry]);
 
   const handleImageLoad = () => {
     setLoadCount(prevCount => prevCount + 1);
@@ -65,16 +68,17 @@ export default function ImageGallery() {
       <div id="gallery" style={loading ? { visibility: 'hidden'} : {}}>
         <div className="grid-sizer"></div>
         {
-          images.map((imageName, index) => (
-            <img
+          images.map((imageName, index) => { 
+            return (
+            <SSRImageLoader
               className="grid-item"
               key={index} 
               src={require(`../../images/gallery/${imageName}.jpg`).default} 
               alt={imageName}
-              loading='lazy'
               onLoad={handleImageLoad}
             />
-        ))}
+          )})
+        }
       </div>
     </>
   );
