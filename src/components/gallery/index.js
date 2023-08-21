@@ -1,7 +1,9 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
+import Loading from '../loading';
 import './index.scss';
 
-const Masonry = typeof window !== `undefined` ? require('masonry-layout') : null;
+let Masonry = null;
+
 const images = [
   'diego1-964a74e7',
   'diego2-4b1777ac',
@@ -29,34 +31,51 @@ const images = [
   'leathercostume-3e1379a3',
 ];
 
-let masonry;
+export default function ImageGallery() {
+  const [masonry, setMasonry] = useState(null);
+  const [loadCount, setLoadCount] = useState(0);
 
-export default class ImageGallery extends Component {
-  
-  componentDidMount() {
-    if (typeof window === 'undefined') return;
-    masonry = new Masonry('#gallery', {
-      itemSelector: '.grid-item',
-      gridSizer: '.grid-sizer',
-      percentPosition: true,
-    });
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      Masonry = require('masonry-layout');
+      setMasonry(new Masonry('#gallery', {
+        itemSelector: '.grid-item',
+        gridSizer: '.grid-sizer',
+        percentPosition: true,
+      }));
+    }
+  }, []);
 
-  render() {
-    return (
-      <div id="gallery">
+  useEffect(() => {
+    if (masonry) {
+      masonry.reloadItems();
+      masonry.layout();
+    }
+  }, [loadCount, masonry]);
+
+  const handleImageLoad = () => {
+    setLoadCount(prevCount => prevCount + 1);
+  };
+
+  const loading = loadCount < images.length;
+
+  return (
+    <>
+      <Loading loading={loading} />
+      <div id="gallery" style={loading ? { visibility: 'hidden'} : {}}>
         <div className="grid-sizer"></div>
-        {images.map((imageName, index) => (
-          <img
-            className="grid-item"
-            key={index} 
-            src={require(`../../images/gallery/${imageName}.jpg`).default} 
-            alt={imageName}
-            loading='lazy'
-            onLoad={() => masonry?.layout()}
-          />
+        {
+          images.map((imageName, index) => (
+            <img
+              className="grid-item"
+              key={index} 
+              src={require(`../../images/gallery/${imageName}.jpg`).default} 
+              alt={imageName}
+              loading='lazy'
+              onLoad={handleImageLoad}
+            />
         ))}
       </div>
-    );
-  }
+    </>
+  );
 }
