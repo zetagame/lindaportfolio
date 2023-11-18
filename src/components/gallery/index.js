@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Loading from '../loading';
 import './index.scss';
 
@@ -31,18 +31,10 @@ const images = [
   'leathercostume-3e1379a3',
 ];
 
-const SSRImageLoader = ({ src, onLoad, alt, ...rest }) => { 
-  useEffect(() => {
-    const img = new Image();
-    img.src = src;
-    img.onload = onLoad;
-  }, []);
-  return <img {...rest} alt={alt} src={src} />;
-}
-
 export default function ImageGallery() {
   const [masonry, setMasonry] = useState(null);
-  const [loadCount, setLoadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const imageRefs = useRef([]);
 
   useEffect(() => {
     if (!masonry) {
@@ -54,32 +46,35 @@ export default function ImageGallery() {
       });
       setMasonry(_masonry)
     }
-  }, []);
+    onLoad();
+  }, [masonry]);
 
-  const handleImageLoad = () => {
-    setLoadCount(prevCount => prevCount + 1);
-  };
-
-  const loading = loadCount < images.length;
+  const onLoad = () => {
+    const allLoaded = imageRefs.current.every(img => img && img.complete);
+    if (allLoaded) {
+      setLoading(false);
+    }
+  }
 
   return (
-    <>
+    <div id="gallery">
       <Loading loading={loading} />
-      <div id="gallery" style={loading ? { visibility: 'hidden'} : {}}>
-        <div className="grid-sizer"></div>
+      <div className="grid-sizer" style={ loading ? {visibility: 'hidden'} : {}}>
         {
-          images.map((imageName, index) => { 
+          images.map((imageName, index) => {
             return (
-            <SSRImageLoader
-              className="grid-item"
-              key={index} 
-              src={require(`../../images/gallery/${imageName}.jpg`).default} 
-              alt={imageName}
-              onLoad={handleImageLoad}
-            />
-          )})
+              <img 
+                key={index}
+                className="grid-item"
+                ref={el => imageRefs.current[index] = el} // Store a reference to the image element
+                onLoad={onLoad} // Increment load count on each image load
+                src={require(`../../images/gallery/${imageName}.jpg`).default}
+                alt={imageName}
+              />
+            );
+          })
         }
       </div>
-    </>
+    </div>
   );
 }
